@@ -447,20 +447,7 @@ def main():
         st.markdown("🇰🇷 한국 12개 도시")
         st.markdown("🌍 해외 4개 도시")
     
-    # 메인 입력 영역
-    st.subheader("🏙️ 도시 선택")
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        city_input = st.text_input(
-            "도시명을 한글 또는 영어로 입력하세요",
-            placeholder="예: 서울, 부산, Seoul, Tokyo...",
-            key="city_input"
-        )
-    
-    with col2:
-        search_button = st.button("🔍 날씨 조회", type="primary")
+
     
     # 한국 도시 버튼들
     st.subheader("🇰🇷 한국 주요 도시")
@@ -470,9 +457,11 @@ def main():
     for i, city in enumerate(korean_cities):
         with cols[i % 4]:
             if st.button(f"📍 {city}", key=f"kr_{city}"):
-                st.session_state.city_input = city
-                city_input = city
-                search_button = True
+                # 날씨 데이터 바로 표시
+                weather_data = get_weather_data(city)
+                if weather_data:
+                    st.markdown("---")
+                    display_weather_info(weather_data)
     
     # 해외 도시 버튼들
     st.subheader("🌍 해외 주요 도시")
@@ -482,20 +471,13 @@ def main():
     for i, city in enumerate(international_cities):
         with cols[i]:
             if st.button(f"🌏 {city}", key=f"intl_{city}"):
-                st.session_state.city_input = city
-                city_input = city
-                search_button = True
+                # 날씨 데이터 바로 표시
+                weather_data = get_weather_data(city)
+                if weather_data:
+                    st.markdown("---")
+                    display_weather_info(weather_data)
     
-    # 날씨 조회 및 표시
-    if search_button and city_input:
-        st.markdown("---")
-        weather_data = get_weather_data(city_input)
-        
-        if weather_data:
-            display_weather_info(weather_data)
-    
-    elif search_button and not city_input:
-        st.warning("⚠️ 도시명을 입력해주세요.")
+
     
     # 푸터
     st.markdown("---")

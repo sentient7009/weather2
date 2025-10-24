@@ -3,6 +3,7 @@ import requests
 import json
 import time
 import os
+import random
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
@@ -1870,6 +1871,112 @@ def main():
                         # AI 질문 처리 로직은 아래에서 처리됨
                         st.session_state.ai_question = question
                         st.rerun()
+        
+        # 시간별 날씨 섹션 추가 (날씨 데이터가 있을 때)
+        if weather_data:
+            st.markdown("---")
+            st.subheader("⏰ 24시간 날씨 예보")
+            
+            # 5일 예보 데이터를 가져와서 오늘과 내일의 시간별 데이터 사용
+            with st.spinner('시간별 날씨 데이터를 불러오는 중...'):
+                forecast_data = get_forecast_data(st.session_state.selected_city)
+            
+            if forecast_data:
+                # 오늘과 내일 24시간 데이터 추출
+                hourly_data = []
+                current_time = datetime.now()
+                
+                for item in forecast_data['list'][:8]:  # 24시간 (3시간 간격 8개)
+                    forecast_time = datetime.fromtimestamp(item['dt'])
+                    hourly_data.append({
+                        'time': forecast_time.strftime('%H:%M'),
+                        'temp': item['main']['temp'],
+                        'desc': item['weather'][0].get('description', item['weather'][0].get('desc', '')),
+                        'icon': item['weather'][0]['icon'],
+                        'humidity': item['main']['humidity'],
+                        'wind': item['wind']['speed']
+                    })
+                
+                # 시간별 날씨를 4개씩 2행으로 표시
+                for row in range(2):
+                    cols = st.columns(4)
+                    for col_idx in range(4):
+                        data_idx = row * 4 + col_idx
+                        if data_idx < len(hourly_data):
+                            hour_data = hourly_data[data_idx]
+                            
+                            with cols[col_idx]:
+                                # 시간별 날씨 카드
+                                st.markdown(f"""
+                                <div style="
+                                    background: linear-gradient(135deg, rgba(255, 235, 59, 0.1) 0%, rgba(255, 214, 0, 0.1) 100%);
+                                    border: 1px solid #ffd600;
+                                    border-radius: 10px;
+                                    padding: 15px;
+                                    text-align: center;
+                                    margin: 5px 0;
+                                ">
+                                    <h4 style="color: #000000; margin: 0 0 10px 0;">{hour_data['time']}</h4>
+                                    <p style="color: #000000; font-size: 1.5em; font-weight: bold; margin: 5px 0;">{hour_data['temp']:.1f}°C</p>
+                                    <p style="color: #000000; margin: 5px 0; font-size: 0.9em;">{hour_data['desc']}</p>
+                                    <p style="color: #666; margin: 5px 0; font-size: 0.8em;">습도: {hour_data['humidity']}%</p>
+                                    <p style="color: #666; margin: 5px 0; font-size: 0.8em;">바람: {hour_data['wind']} m/s</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                
+                st.info("💡 3시간 간격으로 향후 24시간의 날씨를 보여줍니다!")
+            else:
+                # 예보 데이터를 못 가져왔을 때 기본 시간별 데이터 표시
+                st.warning("실시간 시간별 데이터를 가져올 수 없어서 기본 예시를 보여드려요!")
+                
+                # 기본 시간별 데이터 생성 (현재 날씨 기반)
+                current_temp = weather_data['main']['temp']
+                current_desc = weather_data['weather'][0].get('description', 
+                              weather_data['weather'][0].get('desc', ''))
+                current_humidity = weather_data['main']['humidity']
+                current_wind = weather_data['wind']['speed']
+                
+                basic_hourly_data = []
+                for i in range(8):
+                    hour = (datetime.now().hour + i * 3) % 24
+                    temp_variation = random.uniform(-3, 3)  # 온도 변화
+                    basic_hourly_data.append({
+                        'time': f"{hour:02d}:00",
+                        'temp': current_temp + temp_variation,
+                        'desc': current_desc,
+                        'humidity': max(30, min(90, current_humidity + random.randint(-10, 10))),
+                        'wind': max(0, current_wind + random.uniform(-1, 1))
+                    })
+                
+                # 시간별 날씨를 4개씩 2행으로 표시 (기본 데이터)
+                for row in range(2):
+                    cols = st.columns(4)
+                    for col_idx in range(4):
+                        data_idx = row * 4 + col_idx
+                        if data_idx < len(basic_hourly_data):
+                            hour_data = basic_hourly_data[data_idx]
+                            
+                            with cols[col_idx]:
+                                # 시간별 날씨 카드
+                                st.markdown(f"""
+                                <div style="
+                                    background: linear-gradient(135deg, rgba(255, 235, 59, 0.1) 0%, rgba(255, 214, 0, 0.1) 100%);
+                                    border: 1px solid #ffd600;
+                                    border-radius: 10px;
+                                    padding: 15px;
+                                    text-align: center;
+                                    margin: 5px 0;
+                                ">
+                                    <h4 style="color: #000000; margin: 0 0 10px 0;">{hour_data['time']}</h4>
+                                    <p style="color: #000000; font-size: 1.5em; font-weight: bold; margin: 5px 0;">{hour_data['temp']:.1f}°C</p>
+                                    <p style="color: #000000; margin: 5px 0; font-size: 0.9em;">{hour_data['desc']}</p>
+                                    <p style="color: #666; margin: 5px 0; font-size: 0.8em;">습도: {hour_data['humidity']}%</p>
+                                    <p style="color: #666; margin: 5px 0; font-size: 0.8em;">바람: {hour_data['wind']:.1f} m/s</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                
+                st.info("💡 현재 날씨 기반의 예상 시간별 날씨입니다!")
+        
         else:
             st.error(f"{st.session_state.selected_city}의 날씨 정보를 가져올 수 없습니다.")
     
@@ -2087,10 +2194,24 @@ def main():
                     height=150
                 )
                 
-                # 저장 버튼
-                col1, col2, col3 = st.columns([1, 1, 1])
+                # 저장 버튼 (크고 중앙 배치)
+                st.markdown("<br>", unsafe_allow_html=True)  # 위쪽 여백
+                
+                # 큰 버튼 스타일 
+                st.markdown("""
+                <style>
+                div.stButton > button:first-child {
+                    height: 3em;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                # 중앙 배치를 위한 컬럼 (1:2:1 비율)  
+                col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
-                    if st.button("일기 저장하기", type="primary"):
+                    if st.button("📝 일기 저장하기 ✨", type="primary", use_container_width=True, key="save_diary_btn"):
                         if diary_text.strip():
                             success, result = save_weather_diary(
                                 city_name, weather_data, diary_text, selected_mood
@@ -2102,11 +2223,68 @@ def main():
                                 st.error(f"저장 실패: {result}")
                         else:
                             st.warning("일기 내용을 입력해주세요!")
+                
+                st.markdown("<br>", unsafe_allow_html=True)  # 아래쪽 여백
         else:
-            st.info("위의 '도시 선택' 탭에서 먼저 도시를 선택해주세요!")
-            st.markdown("**페이지 상단의 '도시 선택' 섹션을 이용해보세요:**")
+            # 도시 선택 없이도 일기 쓰기 가능
+            st.info("💡 날씨 정보와 함께 일기를 쓰려면 위의 '도시 선택'에서 먼저 도시를 선택해주세요!")
+            
+            # 기본 일기 쓰기 (날씨 정보 없이)
+            st.write("**📝 오늘의 일기**")
+            
+            # 기분 선택 (기본 옵션)
+            basic_moods = ["😊 좋음", "😐 보통", "😔 별로", "😴 피곤함", "😆 즐거움", "😤 짜증남"]
+            selected_mood = st.selectbox("오늘의 기분을 선택하세요:", basic_moods)
+            
+            # 일기 작성
+            diary_text = st.text_area(
+                "오늘의 일기를 써보세요:",
+                placeholder="오늘 하루는 어땠나요? 무엇을 했나요? 어떤 생각을 하셨나요?",
+                height=150
+            )
+            
+            # 저장 버튼 (크고 중앙 배치) - 도시 정보 없이도 저장
+            st.markdown("<br>", unsafe_allow_html=True)  # 위쪽 여백
+            
+            # 큰 버튼 스타일 
+            st.markdown("""
+            <style>
+            div.stButton > button:first-child {
+                height: 3em;
+                font-size: 18px;
+                font-weight: bold;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # 중앙 배치를 위한 컬럼 (1:2:1 비율)  
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button("📝 일기 저장하기 ✨", type="primary", use_container_width=True, key="save_basic_diary_btn"):
+                    if diary_text.strip():
+                        # 기본 날씨 정보 (도시 없음)
+                        basic_weather = {
+                            'name': '일반',
+                            'main': {'temp': 0, 'humidity': 0},
+                            'weather': [{'description': '날씨정보없음', 'desc': '날씨정보없음'}],
+                            'wind': {'speed': 0}
+                        }
+                        success, result = save_weather_diary(
+                            "일반일기", basic_weather, diary_text, selected_mood
+                        )
+                        if success:
+                            st.success(f"일기가 저장되었습니다! 파일: {result}")
+                            st.balloons()  # 축하 효과!
+                        else:
+                            st.error(f"저장 실패: {result}")
+                    else:
+                        st.warning("일기 내용을 입력해주세요!")
+            
+            st.markdown("<br>", unsafe_allow_html=True)  # 아래쪽 여백
+            
+            st.markdown("**💡 날씨 정보와 함께 일기를 쓰려면:**")
             st.markdown("- **도시 목록**: 주요 도시 버튼 클릭")
-            st.markdown("- **지도에서 선택**: 드롭다운에서 선택")
+            st.markdown("- **지도에서 선택**: 드롭다운에서 선택") 
             st.markdown("- **직접 입력**: 도시명 직접 입력")
     
     with diary_tab2:
@@ -2266,31 +2444,7 @@ def main():
     
     st.markdown("---")
     
-    # 도시 입력
-    st.subheader("SEARCH BY CITY NAME")
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        city_input = st.text_input(
-            "도시명을 한글 또는 영어로 입력하세요",
-            placeholder="예: 서울, 부산, Seoul, Tokyo..."
-        )
-    
-    with col2:
-        search_button = st.button("날씨 조회", type="primary")
-    
-    # COMPLETE: 한국 주요 도시 섹션 완전 삭제됨
-    st.subheader("�🇷 한국 주요 도시 (데모 지원)")
-    # korean_cities = ["서울", "부산", "인천", "대구", "대전", "광주", "울산", "수원", "춘천", "청주", "전주", "제주", "김포"]
-    
-    # 날씨 조회 및 표시
-    if search_button and city_input:
-        st.session_state.selected_city = city_input
-        st.session_state.show_forecast[city_input] = False
-    
-    elif search_button and not city_input:
-        st.warning("도시명을 입력해주세요.")
+
     
     # 푸터
     st.markdown("---")
