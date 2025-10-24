@@ -602,6 +602,77 @@ def get_weather_mood_suggestions(weather_data):
     else:
         return ["😊 좋음", "😌 평온함", "💭 생각많음", "😐 보통"]
 
+def get_weather_alerts(weather_data):
+    """스마트 날씨 알림 시스템 - 실용적인 생활 팁 제공"""
+    if not weather_data:
+        return []
+    
+    alerts = []
+    
+    # 기본 날씨 정보 추출
+    temp = weather_data['main']['temp']
+    humidity = weather_data['main']['humidity']
+    wind_speed = weather_data['wind']['speed']
+    desc = weather_data['weather'][0].get('description', weather_data['weather'][0].get('desc', ''))
+    
+    # 🌧️ 비/눈 관련 알림
+    if "비" in desc or "rain" in desc.lower():
+        alerts.append("🌧️ **우산 꼭 챙기세요!** 비가 올 예정이에요")
+        if wind_speed > 7:
+            alerts.append("💨 **바람이 강해요!** 튼튼한 우산을 사용하세요")
+    
+    if "눈" in desc or "snow" in desc.lower():
+        alerts.append("❄️ **눈이 와요!** 미끄러지지 않게 조심하세요")
+        alerts.append("👢 **미끄럽지 않은 신발** 착용을 권해요")
+    
+    # 🌡️ 온도 관련 알림
+    if temp <= 5:
+        alerts.append("🧊 **매우 추워요!** 두꺼운 외투와 장갑, 목도리 챙기세요")
+        alerts.append("☕ **따뜻한 음료**를 준비해두시면 좋아요")
+    elif temp <= 15:
+        alerts.append("🧥 **쌀쌀해요!** 가벼운 외투나 카디건을 입으세요")
+    elif temp >= 30:
+        alerts.append("🌡️ **더워요!** 시원한 옷차림과 충분한 수분 섭취하세요")
+        alerts.append("🧴 **선크림 발라주세요!** 자외선이 강할 수 있어요")
+    elif temp >= 25:
+        alerts.append("☀️ **따뜻해요!** 가벼운 옷차림이 좋겠어요")
+        alerts.append("🧴 **선크림 추천해요!** 날씨가 좋은 날일수록 자외선 주의")
+    
+    # 💨 바람 관련 알림
+    if wind_speed >= 10:
+        alerts.append("💨 **바람이 매우 강해요!** 모자나 가방 단단히 잡으세요")
+        alerts.append("💇 **머리 정리하고** 나가시는 걸 추천해요")
+    elif wind_speed >= 7:
+        alerts.append("🌬️ **바람이 있어요!** 가벼운 옷은 날릴 수 있어요")
+    
+    # 💧 습도 관련 알림
+    if humidity >= 80:
+        alerts.append("💧 **습도가 높아요!** 통풍이 잘 되는 옷을 입으세요")
+        if temp >= 25:
+            alerts.append("🌊 **무더워요!** 시원한 곳에서 자주 휴식하세요")
+    elif humidity <= 30:
+        alerts.append("🏜️ **건조해요!** 립밤과 핸드크림 챙기시고, 물 많이 드세요")
+    
+    # 🌞 맑은 날씨 특별 알림
+    if "맑" in desc or "clear" in desc.lower():
+        if 18 <= temp <= 25:
+            alerts.append("🌞 **완벽한 날씨!** 야외활동하기 좋은 하루예요")
+            alerts.append("📱 **사진 찍기 좋은 날!** 예쁜 하늘을 담아보세요")
+        alerts.append("👓 **선글라스** 있으면 좋겠어요!")
+    
+    # 🌫️ 흐린 날씨 알림
+    elif "구름" in desc or "cloud" in desc.lower():
+        alerts.append("☁️ **흐린 하루예요** 실내 활동도 좋겠어요")
+    
+    # 🏃 활동 추천
+    if 15 <= temp <= 25 and wind_speed < 5 and "비" not in desc:
+        alerts.append("🏃 **운동하기 좋은 날씨!** 조깅이나 산책 어떠세요?")
+    
+    if temp >= 20 and humidity <= 60 and "맑" in desc:
+        alerts.append("👔 **빨래하기 좋은 날!** 금방 마를 것 같아요")
+    
+    return alerts
+
 def weather_ai_assistant(question, weather_data, forecast_data=None):
     """AI 스타일 날씨 개인 비서"""
     if not weather_data:
@@ -1632,19 +1703,21 @@ def display_weather_info(weather_data):
         # 날씨 정보 표시
         st.header(f"🌍 {city_name}, {country}")
         
-        # 🎯 실생활 조언 먼저 표시
-        advice_list = get_weather_advice(weather_data)
+        # 🚨 스마트 날씨 알림 시스템
+        alerts = get_weather_alerts(weather_data)
         
-        # 디버그 정보 (임시)
-        st.write(f"**디버그**: 온도 {temperature}°C, 날씨: {description}")
-        st.write(f"**디버그**: 조언 개수: {len(advice_list)}")
-        
-        if advice_list:
-            st.subheader("오늘의 날씨 조언")
-            for advice in advice_list:
-                st.info(advice)
-        else:
-            st.warning("조언을 생성하지 못했습니다.")
+        if alerts:
+            st.subheader("🚨 오늘의 날씨 알림")
+            for alert in alerts:
+                # 알림 종류에 따라 다른 스타일 적용
+                if "🌧️" in alert or "❄️" in alert:
+                    st.warning(alert)
+                elif "🧊" in alert or "🌡️" in alert:
+                    st.error(alert)
+                elif "🌞" in alert or "🏃" in alert or "👔" in alert:
+                    st.success(alert)
+                else:
+                    st.info(alert)
         
         # 메인 날씨 정보 컬럼으로 배치
         col1, col2, col3 = st.columns(3)
@@ -1842,6 +1915,25 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # 🚨 스마트 날씨 알림 (메인 페이지)
+                alerts = get_weather_alerts(weather_data)
+                if alerts:
+                    st.markdown("### 🚨 오늘의 알림")
+                    # 최대 3개만 표시 (메인 페이지이므로)
+                    for i, alert in enumerate(alerts[:3]):
+                        if "🌧️" in alert or "❄️" in alert:
+                            st.warning(alert)
+                        elif "🧊" in alert or "🌡️" in alert:
+                            st.error(alert)
+                        elif "🌞" in alert or "🏃" in alert or "👔" in alert:
+                            st.success(alert)
+                        else:
+                            st.info(alert)
+                    
+                    # 더 많은 알림이 있으면 표시
+                    if len(alerts) > 3:
+                        st.caption(f"+ {len(alerts) - 3}개 알림 더 보기 (아래 상세 정보에서 확인)")
+                
                 # 추가 정보
                 metric_col1, metric_col2 = st.columns(2)
                 with metric_col1:
@@ -2033,6 +2125,18 @@ def main():
                     st.metric("습도", f"{humidity}%")
                     st.metric("풍속", f"{wind_speed} m/s")
                     st.write(f"**날씨**: {desc}")
+                    
+                    # 🚨 지도 도시 알림 (간단하게 1-2개만)
+                    alerts = get_weather_alerts(weather_data)
+                    if alerts:
+                        st.markdown("**⚠️ 주요 알림:**")
+                        for alert in alerts[:2]:  # 지도에서는 최대 2개만
+                            if "🌧️" in alert or "❄️" in alert or "🧊" in alert:
+                                st.warning(alert)
+                            elif "🌞" in alert or "🏃" in alert:
+                                st.success(alert)
+                            else:
+                                st.info(alert)
                     
                     # 5일 예보 버튼
                     if st.button(f"{map_city_search} 5일 예보", type="primary", key="map_forecast_btn"):
