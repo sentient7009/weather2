@@ -54,7 +54,31 @@ Streamlit과 OpenWeather API를 사용하여 만든 실시간 날씨 정보 웹 
 6. **브라우저에서 확인**
    - 자동으로 브라우저가 열리거나 http://localhost:8501 에 접속하세요
 
-## 📱 사용법
+## � GitHub 배포
+
+### 보안 설정
+이 프로젝트는 API 키를 안전하게 관리합니다:
+
+- **✅ .env 파일**: 로컬 개발용 (git에서 제외됨)
+- **✅ .env.example**: 설정 예시 파일 (git에 포함됨)
+- **✅ .gitignore**: 민감한 파일들 자동 제외
+
+### 배포 단계
+1. **저장소 Fork/Clone**
+2. **환경변수 설정**: `.env.example`을 참고하여 `.env` 파일 생성
+3. **API 키 등록**: OpenWeather API 키를 환경변수에 설정
+4. **안전한 배포**: API 키는 저장소에 노출되지 않음
+
+### Streamlit Cloud 배포
+1. [Streamlit Cloud](https://streamlit.io/cloud)에 로그인
+2. GitHub 저장소 연결
+3. **Secrets** 섹션에서 환경변수 추가:
+   ```
+   OPENWEATHER_API_KEY = "your_actual_api_key"
+   ```
+4. 앱 배포 완료!
+
+## �📱 사용법
 
 1. 웹 애플리케이션에 접속
 2. 도시명을 영어로 입력 (예: Seoul, Tokyo, New York)
