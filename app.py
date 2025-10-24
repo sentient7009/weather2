@@ -2038,25 +2038,6 @@ def main():
                     if st.button(f"{map_city_search} 5일 예보", type="primary", key="map_forecast_btn"):
                         st.session_state.selected_city = map_city_search
                         st.session_state.show_forecast[map_city_search] = True
-                        
-                    # AI 비서 빠른 질문
-                    st.markdown("---")
-                    st.write("**빠른 AI 질문:**")
-                    quick_questions = [
-                        "소풍 가도 될까요?",
-                        "빨래 말리기 좋나요?", 
-                        "운동하기 어때요?",
-                        "무슨 옷 입을까요?"
-                    ]
-                    
-                    for question in quick_questions:
-                        if st.button(question, key=f"map_ai_{map_city_search}_{question}"):
-                            ai_responses = weather_ai_assistant(question, weather_data)
-                            for response in ai_responses:
-                                if response.startswith("💡") or response.startswith("•"):
-                                    st.write(response)
-                                else:
-                                    st.success(response)
             else:
                 st.info("왼쪽 드롭다운에서 도시를 선택하거나 지도의 마커를 클릭해보세요!")
         
