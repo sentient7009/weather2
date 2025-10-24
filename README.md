@@ -72,11 +72,18 @@ Streamlit과 OpenWeather API를 사용하여 만든 실시간 날씨 정보 웹 
 ### Streamlit Cloud 배포
 1. [Streamlit Cloud](https://streamlit.io/cloud)에 로그인
 2. GitHub 저장소 연결
-3. **Secrets** 섹션에서 환경변수 추가:
+3. **🔧 중요: Secrets 설정** (반드시 필요!)
+   - 앱 설정에서 **⚙️ Settings** → **🔐 Secrets** 클릭
+   - 다음 내용을 정확히 입력:
+   ```toml
+   OPENWEATHER_API_KEY = "your_actual_api_key_here"
    ```
-   OPENWEATHER_API_KEY = "your_actual_api_key"
-   ```
-4. 앱 배포 완료!
+   - **Save** 클릭하여 저장
+4. 앱 자동 재시작 후 정상 작동 확인
+
+🚨 **문제 해결**: "API키가 설정되어 있지 않습니다" 오류가 나타나면
+- `STREAMLIT_CLOUD_SETUP.md` 파일의 상세 가이드 참고
+- Secrets 설정이 올바른지 재확인
 
 ## �📱 사용법
 

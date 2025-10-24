@@ -21,6 +21,71 @@ st.set_page_config(
 API_KEY = os.getenv("OPENWEATHER_API_KEY", "YOUR_API_KEY_HERE")
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
+def check_api_key_configuration():
+    """API 키가 제대로 설정되었는지 확인합니다."""
+    if API_KEY == "YOUR_API_KEY_HERE" or not API_KEY:
+        return False
+    return True
+
+def display_api_key_setup_guide():
+    """API 키 설정 가이드를 표시합니다."""
+    st.error("🔑 **API 키가 설정되어 있지 않습니다!**")
+    st.markdown("---")
+    
+    st.subheader("🔧 Streamlit Cloud에서 환경변수 설정하기")
+    
+    st.markdown("""
+    **1단계: Streamlit Cloud 앱 설정으로 이동**
+    - 배포된 앱 페이지에서 오른쪽 상단 "⚙️ Settings" 클릭
+    
+    **2단계: Secrets 섹션 찾기**
+    - 왼쪽 메뉴에서 "🔐 Secrets" 클릭
+    
+    **3단계: 환경변수 추가**
+    - 다음 내용을 입력창에 복사해서 붙여넣기:
+    ```
+    OPENWEATHER_API_KEY = "your_actual_api_key_here"
+    ```
+    
+    **4단계: API 키 발급받기**
+    """)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown("""
+        1. [OpenWeather 회원가입](https://openweathermap.org/api) 하기
+        2. 이메일 인증 완료
+        3. "API Keys" 메뉴로 이동
+        4. 기본 API 키 복사하기
+        """)
+    
+    with col2:
+        st.info("""
+        💡 **무료 계정 제한**
+        - 1,000회/일 호출 제한
+        - 새 API 키는 2시간 후 활성화
+        """)
+    
+    st.markdown("""
+    **5단계: 설정 완료**
+    - API 키를 복사해서 위의 `your_actual_api_key_here` 부분에 붙여넣기
+    - "Save" 버튼 클릭
+    - 앱이 자동으로 재시작됩니다
+    """)
+    
+    st.markdown("---")
+    st.subheader("🏠 로컬 개발 환경")
+    st.markdown("""
+    로컬에서 개발할 때는 프로젝트 폴더에 `.env` 파일을 만들고:
+    ```
+    OPENWEATHER_API_KEY=your_actual_api_key_here
+    ```
+    """)
+    
+    st.warning("⚠️ API 키를 설정한 후 앱을 새로고침해주세요!")
+    
+    return False
+
 # 세션 상태 초기화
 if 'api_status' not in st.session_state:
     st.session_state.api_status = 'unknown'
@@ -322,6 +387,11 @@ def display_weather_info(weather_data):
 
 def main():
     """메인 애플리케이션"""
+    
+    # API 키 설정 확인
+    if not check_api_key_configuration():
+        display_api_key_setup_guide()
+        return
     
     # 제목
     st.title("🌤️ 실시간 날씨 정보")
