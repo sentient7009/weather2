@@ -39,10 +39,11 @@ Streamlit과 OpenWeather API를 사용하여 만든 실시간 날씨 정보 웹 
 
 4. **환경변수 설정**
    - 프로젝트 루트 디렉토리에 `.env` 파일 생성
+   - `.env.example` 파일을 참고하여 설정
    - OpenWeather API에서 무료 API 키를 발급받으세요 ([API 키 발급](https://openweathermap.org/api))
    - `.env` 파일에 다음과 같이 추가:
    ```
-   OPENWEATHER_API_KEY=your_api_key_here
+   OPENWEATHER_API_KEY=your_actual_api_key_here
    ```
 
 5. **앱 실행**
